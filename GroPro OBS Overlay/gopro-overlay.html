@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>GoPro Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: rgba(0,0,0,0);
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .overlay {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(2px);
+            border-left: 3px solid #00AEEF;
+            margin: 12px;
+            border-radius: 2px;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gopro-logo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .gopro-icon {
+            width: 36px;
+            height: 36px;
+            background: #00AEEF;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: #000;
+            letter-spacing: -0.5px;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .rec-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .rec-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff2d2d;
+            border-radius: 50%;
+            animation: blink 1.2s ease-in-out infinite alternate;
+            box-shadow: 0 0 6px #ff2d2d;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.1; }
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: rgba(0, 174, 239, 0.4);
+            margin: 3px 0;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .label {
+            color: #00AEEF;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .clock-row {
+            display: flex;
+            align-items: baseline;
+            gap: 2px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: #fff;
+        }
+
+        .clock-sep {
+            color: #00AEEF;
+            animation: blink 1s step-start infinite;
+        }
+
+        .tz-badge {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #00AEEF;
+            margin-left: 4px;
+            align-self: center;
+        }
+
+        .res-badge {
+            background: rgba(0, 174, 239, 0.15);
+            border: 1px solid rgba(0, 174, 239, 0.5);
+            border-radius: 2px;
+            padding: 1px 5px;
+            font-size: 10px;
+            letter-spacing: 1px;
+            color: #00AEEF;
+            font-family: 'Share Tech Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+
+<div class="overlay">
+    <div class="top-row">
+        <img src="https://i.ibb.co/20R96CGK/toppng-com-gopro-hero-branding-logo-600x253.png" width="80" height="40" style="object-fit:contain; filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));">
+        <div>
+            <div class="rec-badge">
+                <div class="rec-dot"></div>
+                REC&nbsp;&nbsp;<span class="res-badge">4K 60fps</span>
+            </div>
+            <div style="font-size:11px; color:#aaa; font-family:'Share Tech Mono',monospace; margin-top:2px;" id="date-str">MON JAN 01 2025</div>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="info-row">
+        <div class="info-block">
+            <span class="label">Operator</span>
+            <span class="value" id="player">JOHN DOE</span>
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="clock-row">
+        <span id="hr">00</span><span class="clock-sep">:</span><span id="min">00</span><span class="clock-sep">:</span><span id="sec">00</span>
+
+    </div>
+</div>
+
+<script>
+    // *** EDIT YOUR INFO HERE ***
+    const player = "Alex Rivera";
+    // ***************************
+
+    const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+    const dayNames   = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+
+    function pad(v) { return v < 10 ? '0' + v : '' + v; }
+
+    function tick() {
+        const d = new Date();
+        const h = d.getHours();
+        const m = d.getMinutes();
+        const s = d.getSeconds();
+        const dateStr = dayNames[d.getDay()] + ' ' + monthNames[d.getMonth()] + ' ' + pad(d.getDate()) + ' ' + d.getFullYear();
+
+        document.getElementById('hr').textContent       = pad(h);
+        document.getElementById('min').textContent      = pad(m);
+        document.getElementById('sec').textContent      = pad(s);
+        document.getElementById('date-str').textContent = dateStr;
+
+        setTimeout(tick, 1000);
+    }
+
+    function init() {
+        document.getElementById('player').textContent = player.toUpperCase();
+        tick();
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
